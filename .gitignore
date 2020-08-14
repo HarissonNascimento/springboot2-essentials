@@ -1,0 +1,13 @@
+/target/
+
+/.classpath
+/.springBeans
+/.project
+/.settings/
+/.gradle/
+/build/
+
+.git/
+.idea/
+.mvn/
+HELP.md
