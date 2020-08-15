@@ -18,12 +18,14 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AnimeController {
+
     private final AnimeService animeService;
 
-    @GetMapping(path = "/list")
+    @GetMapping
     public ResponseEntity<Page<Anime>> listAll(Pageable pageable) {
         return ResponseEntity.ok(animeService.listAll(pageable));
     }
+
 
     @GetMapping(path = "/{id}")
     public ResponseEntity<Anime> findById(@PathVariable int id){
