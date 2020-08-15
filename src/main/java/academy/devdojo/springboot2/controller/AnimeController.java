@@ -4,6 +4,8 @@ import academy.devdojo.springboot2.domain.Anime;
 import academy.devdojo.springboot2.service.AnimeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +21,8 @@ public class AnimeController {
     private final AnimeService animeService;
 
     @GetMapping(path = "/list")
-    public ResponseEntity<List<Anime>> listAll() {
-        return ResponseEntity.ok(animeService.listAll());
+    public ResponseEntity<Page<Anime>> listAll(Pageable pageable) {
+        return ResponseEntity.ok(animeService.listAll(pageable));
     }
 
     @GetMapping(path = "/{id}")
