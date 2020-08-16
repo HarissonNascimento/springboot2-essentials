@@ -16,7 +16,7 @@ public class SpringClient {
         //@formatter:off
         ResponseEntity<PageableResponse<Anime>> exchangeAnimeList = new RestTemplate()
                 .exchange("http://localhost:8080/animes", HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
-        //@formatter:off
+        //@formatter:on
 
         log.info("Anime List{}", exchangeAnimeList.getBody());
 
@@ -43,7 +43,7 @@ public class SpringClient {
         ResponseEntity<Void> exchangeDeleted = new RestTemplate()
                 .exchange("http://localhost:8080/animes/{id}",
                         HttpMethod.DELETE,
-                        null ,
+                        null,
                         Void.class, steinsGateSaved.getId());
 
         log.info("Steins Gate Deleted Status {}", exchangeDeleted.getStatusCode());
@@ -51,14 +51,15 @@ public class SpringClient {
 
     }
 
-    private static HttpHeaders createJsonHeader(){
+    private static HttpHeaders createJsonHeader() {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         return httpHeaders;
     }
+
     private static void testGetWithRestTemplate() {
-    ResponseEntity<Anime> animeResponseEntity = new RestTemplate()
-            .getForEntity("http://localhost:8080/animes/{id}", Anime.class, 8);
+        ResponseEntity<Anime> animeResponseEntity = new RestTemplate()
+                .getForEntity("http://localhost:8080/animes/{id}", Anime.class, 8);
         log.info("Response Entity {}", animeResponseEntity);
 
         log.info("Response Data {}", animeResponseEntity.getBody());
@@ -66,5 +67,6 @@ public class SpringClient {
         Anime anime = new RestTemplate()
                 .getForObject("http://localhost:8080/animes/{id}", Anime.class, 8);
 
-        log.info("Anime {}", anime);}
+        log.info("Anime {}", anime);
+    }
 }

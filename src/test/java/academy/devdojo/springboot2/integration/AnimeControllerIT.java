@@ -1,38 +1,39 @@
-package academy.devdojo.springboot2.service;
+package academy.devdojo.springboot2.integration;
 
 import academy.devdojo.springboot2.domain.Anime;
-import academy.devdojo.springboot2.exception.ResourceNotFoundException;
 import academy.devdojo.springboot2.repository.AnimeRepository;
 import academy.devdojo.springboot2.util.AnimeCreator;
-import academy.devdojo.springboot2.util.Utils;
+import academy.devdojo.springboot2.wrapper.PageableResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.http.*;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 
-@ExtendWith(SpringExtension.class)
-class AnimeServiceTest {
-    @InjectMocks
-    private AnimeService animeService;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class AnimeControllerIT {
 
-    @Mock
+    @Autowired
+    private TestRestTemplate testRestTemplate;
+    @LocalServerPort
+    private int port;
+    @MockBean
     private AnimeRepository animeRepositoryMock;
-
-    @Mock
-    private Utils utilsMock;
 
     @BeforeEach
     public void setUp() {
@@ -53,10 +54,6 @@ class AnimeServiceTest {
 
         BDDMockito.when(animeRepositoryMock.save(AnimeCreator.createValidAnime()))
                 .thenReturn(AnimeCreator.createValidUpdateAnime());
-
-        BDDMockito.when(
-                utilsMock.findAnimeOrThrowNotFound(anyInt(), any(AnimeRepository.class)))
-                .thenReturn(AnimeCreator.createValidAnime());
     }
 
     @Test
@@ -64,7 +61,11 @@ class AnimeServiceTest {
     public void listAll_ReturnListOfAnimesInsidePageObject_WhenSuccessful() {
         String expectedName = AnimeCreator.createValidAnime().getName();
 
-        Page<Anime> animePage = animeService.listAll(PageRequest.of(1, 1));
+        //@formatter:off
+        Page<Anime> animePage = testRestTemplate.exchange("/animes", HttpMethod.GET,
+                null, new ParameterizedTypeReference<PageableResponse<Anime>>() {
+                }).getBody();
+        //@formatter:on
 
         Assertions.assertThat(animePage).isNotNull();
 
@@ -78,7 +79,7 @@ class AnimeServiceTest {
     public void findById_ReturnAnAnimeById_WhenSuccessful() {
         Integer expectedId = AnimeCreator.createValidAnime().getId();
 
-        Anime anime = animeService.findById(1);
+        Anime anime = testRestTemplate.getForObject("/animes/1", Anime.class);
 
         Assertions.assertThat(anime).isNotNull();
 
@@ -88,11 +89,15 @@ class AnimeServiceTest {
     }
 
     @Test
-    @DisplayName("findByName returns a pageable list of animes when successful")
-    public void findByName_ReturnListOfAnimesInsidePageObject_WhenSuccessful() {
+    @DisplayName("findByName returns a list of animes when successful")
+    public void findByName_ReturnListOfAnimes_WhenSuccessful() {
         String expectedName = AnimeCreator.createValidAnime().getName();
 
-        List<Anime> animeList = animeService.findByName("DBZ");
+        //@formatter:off
+        List<Anime> animeList = testRestTemplate.exchange("//animes/find?name='tensei'",
+                HttpMethod.GET, null, new ParameterizedTypeReference<List<Anime>>() {
+                }).getBody();
+        //@formatter:on
 
         Assertions.assertThat(animeList).isNotNull();
 
@@ -108,7 +113,8 @@ class AnimeServiceTest {
 
         Anime animeToBeSaved = AnimeCreator.createAnimeToBeSaved();
 
-        Anime anime = animeService.save(animeToBeSaved);
+        Anime anime = testRestTemplate.exchange("/animes", HttpMethod.POST,
+                createJsonHttpEntity(animeToBeSaved), Anime.class).getBody();
 
         Assertions.assertThat(anime).isNotNull();
 
@@ -120,35 +126,38 @@ class AnimeServiceTest {
     @Test
     @DisplayName("Delete removes the anime when successful")
     public void delete_RemovesAnime_WhenSuccessful() {
-        Assertions.assertThatCode(() -> animeService.delete(1))
-                .doesNotThrowAnyException();
+        ResponseEntity<Void> responseEntity = testRestTemplate.exchange("/animes/1", HttpMethod.DELETE,
+                null, Void.class);
+
+        Assertions.assertThat(responseEntity).isNotNull();
+
+        Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        Assertions.assertThat(responseEntity.getBody()).isNull();
     }
 
     @Test
-    @DisplayName("Delete throws ResourceNotFoundException when the anime does not exist")
-    public void delete_ThrowsResourceNotFoundException_WhenAnimeDoesNotExist() {
-        BDDMockito.when(
-                utilsMock.findAnimeOrThrowNotFound(anyInt(), any(AnimeRepository.class)))
-                .thenThrow(new ResourceNotFoundException("Anime not found"));
+    @DisplayName("Update save updated anime when successful")
+    public void update_SaveUpdatedAnime_WhenSuccessful() {
+        Anime validAnime = AnimeCreator.createValidAnime();
+        ResponseEntity<Void> responseEntity = testRestTemplate.exchange("/animes", HttpMethod.PUT,
+                createJsonHttpEntity(validAnime), Void.class);
 
-        Assertions.assertThatExceptionOfType(ResourceNotFoundException.class)
-                .isThrownBy(() -> animeService.delete(1));
+        Assertions.assertThat(responseEntity).isNotNull();
+
+        Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        Assertions.assertThat(responseEntity.getBody()).isNull();
     }
 
-    @Test
-    @DisplayName("Save updating update anime when successful")
-    public void save_SaveUpdatedAnime_WhenSuccessful() {
-        Anime validUpdateAnime = AnimeCreator.createValidUpdateAnime();
+    private HttpEntity<Anime> createJsonHttpEntity(Anime anime) {
+        return new HttpEntity<>(anime, createJsonHeader());
+    }
 
-        String expectedName = validUpdateAnime.getName();
-
-        Anime anime = animeService.save(AnimeCreator.createValidAnime());
-
-        Assertions.assertThat(anime).isNotNull();
-
-        Assertions.assertThat(anime.getId()).isNotNull();
-
-        Assertions.assertThat(anime.getName()).isEqualTo(expectedName);
+    private static HttpHeaders createJsonHeader() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        return httpHeaders;
     }
 
 }

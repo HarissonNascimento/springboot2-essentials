@@ -1,8 +1,8 @@
 package academy.devdojo.springboot2.controller;
 
-import academy.devdojo.springboot2.util.AnimeCreator;
 import academy.devdojo.springboot2.domain.Anime;
 import academy.devdojo.springboot2.service.AnimeService;
+import academy.devdojo.springboot2.util.AnimeCreator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,8 +78,8 @@ class AnimeControllerTest {
     }
 
     @Test
-    @DisplayName("findByName returns a pageable list of animes when successful")
-    public void findByName_ReturnListOfAnimesInsidePageObject_WhenSuccessful() {
+    @DisplayName("findByName returns a list of animes when successful")
+    public void findByName_ReturnListOfAnimes_WhenSuccessful() {
         String expectedName = AnimeCreator.createValidAnime().getName();
 
         List<Anime> animeList = animeController.findByName("DBZ").getBody();
@@ -122,17 +122,13 @@ class AnimeControllerTest {
     @Test
     @DisplayName("Update save updated anime when successful")
     public void update_SaveUpdatedAnime_WhenSuccessful() {
-        Anime validUpdateAnime = AnimeCreator.createValidUpdateAnime();
+        ResponseEntity<Anime> responseEntity = animeController.save(AnimeCreator.createValidAnime());
 
-        String expectedName = validUpdateAnime.getName();
+        Assertions.assertThat(responseEntity).isNotNull();
 
-        Anime anime = animeController.save(AnimeCreator.createValidAnime()).getBody();
+        Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        Assertions.assertThat(anime).isNotNull();
-
-        Assertions.assertThat(anime.getId()).isNotNull();
-
-        Assertions.assertThat(anime.getName()).isEqualTo(expectedName);
+        Assertions.assertThat(responseEntity.getBody()).isNull();
     }
 
 }
