@@ -1,5 +1,6 @@
 package academy.devdojo.springboot2.repository;
 
+import academy.devdojo.springboot2.Util.AnimeCreator;
 import academy.devdojo.springboot2.domain.Anime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +24,7 @@ class AnimeRepositoryTest {
     @Test
     @DisplayName("Save create anime when successful")
     public void save_PersistAnime_WhenSuccessful(){
-        Anime anime = createAnime();
+        Anime anime = AnimeCreator.createAnimeToBeSaved();
 
         Anime savedAnime = this.animeRepository.save(anime);
 
@@ -35,7 +36,7 @@ class AnimeRepositoryTest {
     @Test
     @DisplayName("Save update anime when successful")
     public void save_UpdateAnime_WhenSuccessful(){
-        Anime anime = createAnime();
+        Anime anime = AnimeCreator.createAnimeToBeSaved();
 
         Anime savedAnime = this.animeRepository.save(anime);
 
@@ -51,7 +52,7 @@ class AnimeRepositoryTest {
     @Test
     @DisplayName("Delete remove anime when successful")
     public void delete_RemoveAnime_WhenSuccessful(){
-        Anime anime = createAnime();
+        Anime anime = AnimeCreator.createAnimeToBeSaved();
 
         Anime savedAnime = this.animeRepository.save(anime);
 
@@ -65,7 +66,7 @@ class AnimeRepositoryTest {
     @Test
     @DisplayName("Find by name returns anime when successful")
     public void findByName_ReturnAnimes_WhenSuccessful(){
-        Anime anime = createAnime();
+        Anime anime = AnimeCreator.createAnimeToBeSaved();
 
         Anime savedAnime = this.animeRepository.save(anime);
 
@@ -100,11 +101,5 @@ class AnimeRepositoryTest {
         Assertions.assertThatExceptionOfType(ConstraintViolationException.class)
                 .isThrownBy(()-> animeRepository.save(anime))
                 .withMessageContaining("The name of this anime cannot be empty");
-    }
-
-    private Anime createAnime(){
-        return Anime.builder()
-                .name("Tensei Shitara Slime Datta Ken")
-                .build();
     }
 }
