@@ -122,13 +122,17 @@ class AnimeControllerTest {
     @Test
     @DisplayName("Update save updated anime when successful")
     public void update_SaveUpdatedAnime_WhenSuccessful() {
-        ResponseEntity<Anime> responseEntity = animeController.save(AnimeCreator.createValidAnime());
+        Anime validUpdatedAnime = AnimeCreator.createValidUpdateAnime();
 
-        Assertions.assertThat(responseEntity).isNotNull();
+        String expectedName = validUpdatedAnime.getName();
 
-        Assertions.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        Anime anime = animeController.save(AnimeCreator.createValidAnime()).getBody();
 
-        Assertions.assertThat(responseEntity.getBody()).isNull();
+        Assertions.assertThat(anime).isNotNull();
+
+        Assertions.assertThat(anime.getId()).isNotNull();
+
+        Assertions.assertThat(anime.getName()).isEqualTo(expectedName);
     }
 
 }
