@@ -23,3 +23,16 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: when_authorized
+
+info:
+  app: Spring Boot 2 Essentials
+  website: http://devdojo.academy
+  github: https://github.com/HarissonNascimento/springboot2-essentials
